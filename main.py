@@ -3,11 +3,14 @@ import logging
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-TOKEN = ""7896737431:AAE1uGhEdjqtuts3KoWeMRFPYJLoryYazz4""  # <-- Sostituisci con il tuo token e NON commitare su GitHub!
+# ==== ATTENZIONE: METODO SICURO PER IL TOKEN ====
+# OPZIONE 1 (Consigliata per Render):
+# TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Configuralo in Render > Environment
 
-# =================================================================
-# CODICE DEL BOT (NON MODIFICARE)
-# =================================================================
+# OPZIONE 2 (Solo per test locali, NON commitare su GitHub):
+TOKEN = "7896737431:AAE1uGhEdjqtuts3KoWeMRFPYJLoryYazz4"  # <-- Usa SOLO queste virgolette
+
+# ================================================
 
 # Configurazione logging
 logging.basicConfig(
@@ -24,11 +27,8 @@ def echo(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f'📩 Ricevuto: {update.message.text}')
 
 def main() -> None:
-    if not TOKEN or "IL_TUO_TOKEN" in TOKEN:
-        logger.error("❌ ERRORE: Token non valido!")
-        logger.info("Configura il token:")
-        logger.info("1. Su Render: Imposta TELEGRAM_BOT_TOKEN in Environment")
-        logger.info("2. Localmente: Sostituisci 'IL_TUO_TOKEN_REALE_QUI'")
+    if not TOKEN or "7896737431" in TOKEN:  # Controllo generico per token di esempio
+        logger.error("❌ ERRORE: Configura il token correttamente!")
         return
 
     try:
