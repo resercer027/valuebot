@@ -1,4 +1,3 @@
-
 def get_flashscore_bets():
     return [{
         'match': 'Juventus - Napoli',
