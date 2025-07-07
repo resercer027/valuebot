@@ -12,7 +12,7 @@ logging.basicConfig(
 )
 
 # Messaggio fisso da inviare ogni 10 minuti
-VALUE_BET = "💰 Ecco una value bet automatica!
+VALUE_BET = "💰 Ecco una value bet automatica!"
 
 📍 Partita: Juventus - Milan
 🏆 Mercato: 1X2
