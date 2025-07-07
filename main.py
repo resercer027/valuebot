@@ -1,48 +1,45 @@
 
-from telegram.ext import Updater, CommandHandler
-from auto_sender import run_combined_scrapers
-import schedule
-import time
-import threading
+import logging
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, JobQueue
+import asyncio
 
-TOKEN = "7896737431:AAE1uGhEdjqtuts3KoWeMRFPYJLoryYazz4"
-CHAT_ID = None  # sarà salvato alla prima interazione
+BOT_TOKEN = "INSERISCI_IL_TUO_TOKEN_QUI"
 
-updater = Updater(TOKEN)
-dp = updater.dispatcher
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-def start(update, context):
-    global CHAT_ID
-    CHAT_ID = update.effective_chat.id
-    update.message.reply_text("✅ Bot attivo! Ti invierò scommesse value ogni 10 minuti.")
+# Messaggio fisso da inviare ogni 10 minuti
+VALUE_BET = "💰 Ecco una value bet automatica!
 
-def valuebet(update, context):
-    bets = run_combined_scrapers()
-    if bets:
-        for bet in bets:
-            update.message.reply_text(bet)
-    else:
-        update.message.reply_text("⏳ Nessuna value bet valida trovata ora.")
+📍 Partita: Juventus - Milan
+🏆 Mercato: 1X2
+💡 Puntata: 1 (Quota 3.10)
+📈 Valore stimato: +8%"
 
-def send_auto_value_bets():
-    if CHAT_ID:
-        bets = run_combined_scrapers()
-        bot = updater.bot
-        if bets:
-            for bet in bets:
-                bot.send_message(chat_id=CHAT_ID, text=bet)
-        else:
-            bot.send_message(chat_id=CHAT_ID, text="⏳ Nessuna value bet automatica trovata ora.")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("✅ Bot attivo! Riceverai automaticamente le value bet ogni 10 minuti.")
 
-def schedule_loop():
-    schedule.every(10).minutes.do(send_auto_value_bets)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+async def valuebet(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(VALUE_BET)
 
-dp.add_handler(CommandHandler("start", start))
-dp.add_handler(CommandHandler("valuebet", valuebet))
+async def scheduled_send(context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=context.job.chat_id, text=VALUE_BET)
 
-threading.Thread(target=schedule_loop, daemon=True).start()
-updater.start_polling()
-updater.idle()
+def main():
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("valuebet", valuebet))
+
+    async def start_bot():
+        # Esegui ogni 10 minuti (600 secondi)
+        app.job_queue.run_repeating(scheduled_send, interval=600, first=10, chat_id="INSERISCI_IL_TUO_CHAT_ID")
+        await app.run_polling()
+
+    asyncio.run(start_bot())
+
+if __name__ == '__main__':
+    main()
