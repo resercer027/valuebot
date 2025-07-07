@@ -1,49 +1,47 @@
-import os
-import logging
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler
+from auto_sender import run_combined_scrapers
+import schedule
+import time
+import threading
 
-# ==== ATTENZIONE: METODO SICURO PER IL TOKEN ====
-# OPZIONE 1 (Consigliata per Render):
-# TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Configuralo in Render > Environment
+TOKEN = "7896737431:AAE1uGhEdjqtuts3KoWeMRFPYJLoryYazz4"
+CHAT_ID = None  # Salvato alla prima interazione
 
-# OPZIONE 2 (Solo per test locali, NON commitare su GitHub):
-TOKEN = "7896737431:AAE1uGhEdjqtuts3KoWeMRFPYJLoryYazz4"  # <-- Usa SOLO queste virgolette
+updater = Updater(TOKEN)
+dp = updater.dispatcher
 
-# ================================================
+def start(update, context):
+    global CHAT_ID
+    CHAT_ID = update.effective_chat.id
+    update.message.reply_text("Bot attivo! Ti invierò scommesse value ogni 10 minuti.")
 
-# Configurazione logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+def valuebet(update, context):
+    bets = run_combined_scrapers()
+    if bets:
+        for bet in bets:
+            update.message.reply_text(bet)
+    else:
+        update.message.reply_text("Nessuna value bet valida trovata al momento.")
 
-def start(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    update.message.reply_text(f'👋 Ciao {user.first_name}! Bot attivo e funzionante.')
+def send_auto_value_bets():
+    if CHAT_ID:
+        bets = run_combined_scrapers()
+        bot = updater.bot
+        if bets:
+            for bet in bets:
+                bot.send_message(chat_id=CHAT_ID, text=bet)
+        else:
+            bot.send_message(chat_id=CHAT_ID, text="Nessuna value bet automatica trovata al momento.")
 
-def echo(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(f'📩 Ricevuto: {update.message.text}')
+def schedule_loop():
+    schedule.every(10).minutes.do(send_auto_value_bets)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-def main() -> None:
-    if not TOKEN or "7896737431" in TOKEN:  # Controllo generico per token di esempio
-        logger.error("❌ ERRORE: Configura il token correttamente!")
-        return
+dp.add_handler(CommandHandler("start", start))
+dp.add_handler(CommandHandler("valuebet", valuebet))
 
-    try:
-        updater = Updater(TOKEN)
-        dispatcher = updater.dispatcher
-        
-        dispatcher.add_handler(CommandHandler("start", start))
-        dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
-
-        logger.info("✅ Bot avviato con successo")
-        updater.start_polling()
-        updater.idle()
-
-    except Exception as e:
-        logger.error(f"🔥 Errore critico: {e}")
-
-if __name__ == '__main__':
-    main()
+threading.Thread(target=schedule_loop, daemon=True).start()
+updater.start_polling()
+updater.idle()
