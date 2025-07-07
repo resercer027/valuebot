@@ -12,12 +12,12 @@ logging.basicConfig(
 )
 
 # Messaggio fisso da inviare ogni 10 minuti
-VALUE_BET = "💰 Ecco una value bet automatica!"
+VALUE_BET = " Ecco una value bet automatica!"
 
-📍 Partita: Juventus - Milan
-🏆 Mercato: 1X2
-💡 Puntata: 1 (Quota 3.10)
-📈 Valore stimato: +8%"
+ Partita: Juventus - Milan
+ Mercato: 1X2
+ Puntata: 1 (Quota 3.10)
+ Valore stimato: +8%"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Bot attivo! Riceverai automaticamente le value bet ogni 10 minuti.")
