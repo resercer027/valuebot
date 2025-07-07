@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-from PIL import Image  # Aggiungi questa riga
+from PIL import Image
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
