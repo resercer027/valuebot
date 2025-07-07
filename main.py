@@ -1,45 +1,37 @@
-
+import os
 import logging
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, JobQueue
-import asyncio
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-BOT_TOKEN = "INSERISCI_IL_TUO_TOKEN_QUI"
-
+# Configurazione logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+logger = logging.getLogger(__name__)
 
-# Messaggio fisso da inviare ogni 10 minuti
-VALUE_BET = " Ecco una value bet automatica!"
+# Variabili d'ambiente
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
- Partita: Juventus - Milan
- Mercato: 1X2
- Puntata: 1 (Quota 3.10)
- Valore stimato: +8%"
+def start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text('Ciao! Sono il tuo bot Telegram. Inviami un messaggio e ti risponderò.')
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✅ Bot attivo! Riceverai automaticamente le value bet ogni 10 minuti.")
+def echo(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(update.message.text)
 
-async def valuebet(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(VALUE_BET)
+def main() -> None:
+    updater = Updater(TOKEN)
+    dispatcher = updater.dispatcher
 
-async def scheduled_send(context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=context.job.chat_id, text=VALUE_BET)
+    # Gestori di comandi e messaggi
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
 
-def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("valuebet", valuebet))
-
-    async def start_bot():
-        # Esegui ogni 10 minuti (600 secondi)
-        app.job_queue.run_repeating(scheduled_send, interval=600, first=10, chat_id="INSERISCI_IL_TUO_CHAT_ID")
-        await app.run_polling()
-
-    asyncio.run(start_bot())
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
-    main()
+    if TOKEN:
+        main()
+    else:
+        logger.error("TELEGRAM_BOT_TOKEN non configurato!")
