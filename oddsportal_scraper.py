@@ -1,4 +1,3 @@
-
 def get_oddsportal_bets():
     return [{
         'match': 'Milan - Inter',

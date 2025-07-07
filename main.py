@@ -1,10 +1,15 @@
+import os
 from telegram.ext import Updater, CommandHandler
 from auto_sender import run_combined_scrapers
 import schedule
 import time
 import threading
+from dotenv import load_dotenv
 
-TOKEN = "7896737431:AAE1uGhEdjqtuts3KoWeMRFPYJLoryYazz4"
+# Carica le variabili d'ambiente dal file .env
+load_dotenv()
+
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = None  # Salvato alla prima interazione
 
 updater = Updater(TOKEN)
